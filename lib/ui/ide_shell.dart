@@ -4,6 +4,7 @@ import 'package:multi_split_view/multi_split_view.dart';
 import '../files/file_explorer.dart';
 import '../editor/code_editor.dart';
 import '../runner/terminal_panel.dart';
+import '../runner/process_service.dart';
 import 'editor_tabs.dart';
 import 'status_bar.dart';
 import '../lsp/analysis_service.dart';
@@ -29,7 +30,39 @@ class _IDEShellState extends ConsumerState<IDEShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // ... existing AppBar code ...
+        title: const Text('Flutter IDE'),
+        backgroundColor: const Color(0xFF333333),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.play_arrow, color: Colors.green),
+            onPressed: () {
+              ref.read(processServiceProvider).runFlutterApp();
+            },
+            tooltip: 'Run',
+          ),
+          IconButton(
+            icon: const Icon(Icons.flash_on, color: Colors.yellow),
+            onPressed: () {
+              ref.read(processServiceProvider).hotReload();
+            },
+            tooltip: 'Hot Reload',
+          ),
+          IconButton(
+            icon: const Icon(Icons.restart_alt, color: Colors.orange),
+            onPressed: () {
+              ref.read(processServiceProvider).hotRestart();
+            },
+            tooltip: 'Hot Restart',
+          ),
+          IconButton(
+            icon: const Icon(Icons.stop, color: Colors.red),
+            onPressed: () {
+              ref.read(processServiceProvider).stop();
+            },
+            tooltip: 'Stop',
+          ),
+          const SizedBox(width: 10),
+        ],
       ),
       body: Column(
         children: [
