@@ -5,6 +5,7 @@ import 'package:flutter_code_editor/flutter_code_editor.dart';
 import 'package:highlight/languages/dart.dart';
 import 'package:flutter_highlight/themes/monokai-sublime.dart';
 import '../providers.dart';
+import '../lsp/analysis_service.dart';
 
 class CodeEditor extends ConsumerStatefulWidget {
   const CodeEditor({super.key});
@@ -44,17 +45,52 @@ class _CodeEditorState extends ConsumerState<CodeEditor> {
 
     return CodeTheme(
       data: CodeThemeData(styles: monokaiSublimeTheme),
-      child: SingleChildScrollView(
-        child: CodeField(
-          controller: _controller!,
-          textStyle: const TextStyle(fontFamily: 'monospace', fontSize: 14),
-          gutterStyle: const GutterStyle(
-            showLineNumbers: true,
-            textStyle: TextStyle(color: Colors.grey, fontSize: 12),
-            width: 50,
-            margin: 5,
+      child: Stack(
+        children: [
+          SingleChildScrollView(
+            child: CodeField(
+              controller: _controller!,
+              textStyle: const TextStyle(fontFamily: 'monospace', fontSize: 14),
+              gutterStyle: const GutterStyle(
+                showLineNumbers: true,
+                textStyle: TextStyle(color: Colors.grey, fontSize: 12),
+                width: 50,
+                margin: 5,
+              ),
+            ),
           ),
-        ),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Consumer(
+                builder: (context, ref, _) {
+                  final diagnostics = ref.watch(diagnosticsProvider);
+                  // Simple overlay for POC - just showing count or list at bottom
+                  if (diagnostics.isEmpty) return const SizedBox();
+                  
+                  return Align(
+                    alignment: Alignment.bottomRight,
+                    child: Container(
+                      margin: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(8),
+                      color: Colors.black87,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: diagnostics.map((d) => Text(
+                          'Ln ${d.line}: ${d.message}',
+                          style: TextStyle(
+                            color: d.severity == 'Error' ? Colors.red : Colors.yellow,
+                            fontSize: 12,
+                          ),
+                        )).take(5).toList(),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -74,9 +110,26 @@ class _CodeEditorState extends ConsumerState<CodeEditor> {
       // Initialize content provider
       ref.read(currentContentProvider.notifier).set(content);
       
+      // Notify LSP
+      ref.read(analysisServiceProvider).didOpen(path, content);
+      
       // Listen for changes
       _controller!.addListener(() {
-        ref.read(currentContentProvider.notifier).set(_controller!.text);
+        final text = _controller!.text;
+        ref.read(currentContentProvider.notifier).set(text);
+        
+        // Notify LSP
+        ref.read(analysisServiceProvider).didChange(path, text);
+        
+        // Update cursor position
+        final selection = _controller!.selection;
+        if (selection.baseOffset >= 0) {
+          final beforeCursor = text.substring(0, selection.baseOffset);
+          final line = beforeCursor.split('\n').length;
+          final lastNewLine = beforeCursor.lastIndexOf('\n');
+          final col = selection.baseOffset - (lastNewLine == -1 ? 0 : lastNewLine + 1) + 1;
+          ref.read(cursorPositionProvider.notifier).set(line, col);
+        }
       });
     } catch (e) {
       // Handle error (e.g. binary file)

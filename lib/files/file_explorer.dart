@@ -109,7 +109,13 @@ class _FileTreeState extends ConsumerState<_FileTree> {
                     _expanded[entity.path] = !isExpanded;
                   });
                 } else {
-                  ref.read(activeFileProvider.notifier).set(entity.path);
+                  final openFiles = ref.read(openFilesProvider);
+                  if (!openFiles.contains(entity.path)) {
+                    ref.read(openFilesProvider.notifier).add(entity.path);
+                    ref.read(activeIndexProvider.notifier).set(openFiles.length);
+                  } else {
+                    ref.read(activeIndexProvider.notifier).set(openFiles.indexOf(entity.path));
+                  }
                 }
               },
               child: Padding(
