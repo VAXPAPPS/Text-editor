@@ -13,7 +13,7 @@ class EditorTabs extends ConsumerWidget {
 
     if (openFiles.isEmpty) {
       return Container(
-        color: const Color(0xFF1E1E1E),
+        color: const Color.fromARGB(0, 30, 30, 30),
         child: const Center(
           child: Text('No files open', style: TextStyle(color: Colors.grey)),
         ),
@@ -22,7 +22,7 @@ class EditorTabs extends ConsumerWidget {
 
     return Container(
       height: 35,
-      color: const Color(0xFF252526),
+      color: const Color.fromARGB(0, 37, 37, 38),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: openFiles.length,
@@ -37,7 +37,7 @@ class EditorTabs extends ConsumerWidget {
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              color: isActive ? const Color(0xFF1E1E1E) : Colors.transparent,
+              color: isActive ? const Color.fromARGB(255, 69, 179, 164) : Colors.transparent,
               alignment: Alignment.center,
               child: Row(
                 children: [

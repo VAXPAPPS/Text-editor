@@ -43,8 +43,14 @@ class _CodeEditorState extends ConsumerState<CodeEditor> {
       return const Center(child: CircularProgressIndicator());
     }
 
+    final customTheme = Map<String, TextStyle>.from(monokaiSublimeTheme);
+    customTheme['root'] = TextStyle(
+      backgroundColor: Colors.transparent,
+      color: const Color(0xfff8f8f2),
+    );
+
     return CodeTheme(
-      data: CodeThemeData(styles: monokaiSublimeTheme),
+      data: CodeThemeData(styles: customTheme),
       child: Stack(
         children: [
           SingleChildScrollView(
@@ -66,23 +72,30 @@ class _CodeEditorState extends ConsumerState<CodeEditor> {
                   final diagnostics = ref.watch(diagnosticsProvider);
                   // Simple overlay for POC - just showing count or list at bottom
                   if (diagnostics.isEmpty) return const SizedBox();
-                  
+
                   return Align(
                     alignment: Alignment.bottomRight,
                     child: Container(
                       margin: const EdgeInsets.all(8),
                       padding: const EdgeInsets.all(8),
-                      color: Colors.black87,
+                      color: const Color.fromARGB(0, 0, 0, 0),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: diagnostics.map((d) => Text(
-                          'Ln ${d.line}: ${d.message}',
-                          style: TextStyle(
-                            color: d.severity == 'Error' ? Colors.red : Colors.yellow,
-                            fontSize: 12,
-                          ),
-                        )).take(5).toList(),
+                        children: diagnostics
+                            .map(
+                              (d) => Text(
+                                'Ln ${d.line}: ${d.message}',
+                                style: TextStyle(
+                                  color: d.severity == 'Error'
+                                      ? Colors.red
+                                      : Colors.yellow,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            )
+                            .take(5)
+                            .toList(),
                       ),
                     ),
                   );
@@ -99,35 +112,35 @@ class _CodeEditorState extends ConsumerState<CodeEditor> {
     try {
       final file = File(path);
       final content = await file.readAsString();
-      
+
       setState(() {
-        _controller = CodeController(
-          text: content,
-          language: dart,
-        );
+        _controller = CodeController(text: content, language: dart);
       });
-      
+
       // Initialize content provider
       ref.read(currentContentProvider.notifier).set(content);
-      
+
       // Notify LSP
       ref.read(analysisServiceProvider).didOpen(path, content);
-      
+
       // Listen for changes
       _controller!.addListener(() {
         final text = _controller!.text;
         ref.read(currentContentProvider.notifier).set(text);
-        
+
         // Notify LSP
         ref.read(analysisServiceProvider).didChange(path, text);
-        
+
         // Update cursor position
         final selection = _controller!.selection;
         if (selection.baseOffset >= 0) {
           final beforeCursor = text.substring(0, selection.baseOffset);
           final line = beforeCursor.split('\n').length;
           final lastNewLine = beforeCursor.lastIndexOf('\n');
-          final col = selection.baseOffset - (lastNewLine == -1 ? 0 : lastNewLine + 1) + 1;
+          final col =
+              selection.baseOffset -
+              (lastNewLine == -1 ? 0 : lastNewLine + 1) +
+              1;
           ref.read(cursorPositionProvider.notifier).set(line, col);
         }
       });

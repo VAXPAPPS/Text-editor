@@ -25,6 +25,16 @@ static void my_application_activate(GApplication* application) {
   MyApplication* self = MY_APPLICATION(application);
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
+  GtkWidget* window_widget = GTK_WIDGET(window);
+  gtk_widget_set_app_paintable(window_widget, TRUE);
+  GdkScreen* screen = gtk_window_get_screen(window);
+#if GTK_CHECK_VERSION(3, 0, 0)
+  GdkVisual* visual = gdk_screen_get_rgba_visual(screen);
+  if (visual != nullptr) {
+    gtk_widget_set_visual(window_widget, visual);
+  }
+#endif
+
 
   // Use a header bar when running in GNOME as this is the common style used
   // by applications and is the setup most users will be using (e.g. Ubuntu
@@ -35,7 +45,6 @@ static void my_application_activate(GApplication* application) {
   // if future cases occur).
   gboolean use_header_bar = TRUE;
 #ifdef GDK_WINDOWING_X11
-  GdkScreen* screen = gtk_window_get_screen(window);
   if (GDK_IS_X11_SCREEN(screen)) {
     const gchar* wm_name = gdk_x11_screen_get_window_manager_name(screen);
     if (g_strcmp0(wm_name, "GNOME Shell") != 0) {
@@ -45,12 +54,26 @@ static void my_application_activate(GApplication* application) {
 #endif
   if (use_header_bar) {
     GtkHeaderBar* header_bar = GTK_HEADER_BAR(gtk_header_bar_new());
+
+    // --- (بداية الكود المضاف لتغيير اللون) ---
+    GtkCssProvider* provider = gtk_css_provider_new();
+    
+    // اللون الذي طلبته: A=162 (162/255 = 0.635), R=0, G=0, B=0
+    // نستخدم "headerbar" كـ "selector" لاستهداف الـ GtkHeaderBar
+    const gchar* css = "headerbar { background-color: rgba(0, 0, 0, 0.635); }";
+    
+    gtk_css_provider_load_from_data(provider, css, -1, NULL);
+    GtkStyleContext* context = gtk_widget_get_style_context(GTK_WIDGET(header_bar));
+    gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+    g_object_unref(provider);
+    // --- (نهاية الكود المضاف) ---
+
     gtk_widget_show(GTK_WIDGET(header_bar));
-    gtk_header_bar_set_title(header_bar, "flutter_dart_editor");
+    gtk_header_bar_set_title(header_bar, "antidote");
     gtk_header_bar_set_show_close_button(header_bar, TRUE);
     gtk_window_set_titlebar(window, GTK_WIDGET(header_bar));
   } else {
-    gtk_window_set_title(window, "flutter_dart_editor");
+    gtk_window_set_title(window, "antidote");
   }
 
   gtk_window_set_default_size(window, 1280, 720);
@@ -61,8 +84,8 @@ static void my_application_activate(GApplication* application) {
   FlView* view = fl_view_new(project);
   GdkRGBA background_color;
   // Background defaults to black, override it here if necessary, e.g. #00000000 for transparent.
-  gdk_rgba_parse(&background_color, "#00000007");
-  fl_view_set_background_color(view, &background_color);
+    gdk_rgba_parse(&background_color, "#00000000"); // transparent
+    fl_view_set_background_color(view, &background_color);
   gtk_widget_show(GTK_WIDGET(view));
   gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(view));
 
@@ -74,7 +97,10 @@ static void my_application_activate(GApplication* application) {
   fl_register_plugins(FL_PLUGIN_REGISTRY(view));
 
   gtk_widget_grab_focus(GTK_WIDGET(view));
+
+
 }
+
 
 // Implements GApplication::local_command_line.
 static gboolean my_application_local_command_line(GApplication* application, gchar*** arguments, int* exit_status) {

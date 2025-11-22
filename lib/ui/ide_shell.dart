@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dart_editor/venom_layout.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:multi_split_view/multi_split_view.dart';
 import '../files/file_explorer.dart';
@@ -28,10 +29,10 @@ class _IDEShellState extends ConsumerState<IDEShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return VenomScaffold(
       appBar: AppBar(
         title: const Text('Flutter IDE'),
-        backgroundColor: const Color(0xFF333333),
+        backgroundColor: const Color.fromARGB(0, 0, 0, 0),
         actions: [
           IconButton(
             icon: const Icon(Icons.play_arrow, color: Colors.green),
@@ -111,7 +112,7 @@ class _IDEShellState extends ConsumerState<IDEShell> {
 
   Widget _buildEditorArea() {
     return Container(
-      color: const Color(0xFF1E1E1E),
+      color: const Color.fromARGB(0, 0, 0, 0),
       child: Column(
         children: [
           const EditorTabs(),

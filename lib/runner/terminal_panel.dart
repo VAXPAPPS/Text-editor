@@ -35,7 +35,7 @@ class _TerminalPanelState extends ConsumerState<TerminalPanel> {
     });
 
     return Container(
-      color: Colors.black,
+      color: const Color.fromARGB(68, 0, 0, 0),
       child: TerminalView(
         _terminal,
         controller: _controller,
