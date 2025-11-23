@@ -12,7 +12,6 @@ import '../blocs/process/process_event.dart';
 import '../blocs/analysis/analysis_bloc.dart';
 import '../blocs/analysis/analysis_event.dart';
 import '../blocs/search/search_bloc.dart';
-import '../blocs/search/search_event.dart';
 import '../blocs/git/git_bloc.dart';
 import '../blocs/git/git_event.dart';
 import '../services/git_service.dart';
