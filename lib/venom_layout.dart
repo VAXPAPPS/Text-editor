@@ -6,6 +6,7 @@ import 'package:window_manager/window_manager.dart';
 
 import 'blocs/process/process_bloc.dart';
 import 'blocs/process/process_event.dart';
+import 'blocs/process/process_state.dart';
 import 'blocs/analysis/analysis_bloc.dart';
 import 'blocs/analysis/analysis_event.dart';
 import 'blocs/file_explorer/file_explorer_cubit.dart';
@@ -147,43 +148,61 @@ class _VenomAppbarState extends State<VenomAppbar> {
               ),
             ),
 
-            NeonActionBtn(
-              child: const Icon(Icons.play_arrow, color: Colors.green),
-              onTap: () {
-                final projectPath = context
-                    .read<FileExplorerCubit>()
-                    .state
-                    .projectPath;
-                if (projectPath != null) {
-                  context.read<ProcessBloc>().add(ProcessRun(projectPath));
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('No project open')),
-                  );
-                }
+            BlocBuilder<ProcessBloc, ProcessState>(
+              builder: (context, state) {
+                final isRunning =
+                    state is ProcessRunning || state is ProcessOutput;
+
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    NeonActionBtn(
+                      child: Icon(
+                        isRunning ? Icons.stop : Icons.play_arrow,
+                        color: isRunning ? Colors.red : Colors.green,
+                      ),
+                      onTap: () {
+                        if (isRunning) {
+                          context.read<ProcessBloc>().add(ProcessStop());
+                        } else {
+                          final projectPath = context
+                              .read<FileExplorerCubit>()
+                              .state
+                              .projectPath;
+                          if (projectPath != null) {
+                            context.read<ProcessBloc>().add(
+                              ProcessRun(projectPath),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('No project open')),
+                            );
+                          }
+                        }
+                      },
+                    ),
+                    if (isRunning) ...[
+                      const SizedBox(width: 10),
+                      NeonActionBtn(
+                        child: const Icon(Icons.flash_on, color: Colors.yellow),
+                        onTap: () {
+                          context.read<ProcessBloc>().add(ProcessHotReload());
+                        },
+                      ),
+                      const SizedBox(width: 10),
+                      NeonActionBtn(
+                        child: const Icon(
+                          Icons.restart_alt,
+                          color: Colors.orange,
+                        ),
+                        onTap: () {
+                          context.read<ProcessBloc>().add(ProcessHotRestart());
+                        },
+                      ),
+                    ],
+                  ],
+                );
               },
-              // tooltip: 'Run',
-            ),
-            NeonActionBtn(
-              child: const Icon(Icons.flash_on, color: Colors.yellow),
-              onTap: () {
-                context.read<ProcessBloc>().add(ProcessHotReload());
-              },
-              // tooltip: 'Hot Reload',
-            ),
-            NeonActionBtn(
-              child: const Icon(Icons.restart_alt, color: Colors.orange),
-              onTap: () {
-                context.read<ProcessBloc>().add(ProcessHotRestart());
-              },
-              // tooltip: 'Hot Restart',
-            ),
-            NeonActionBtn(
-              child: const Icon(Icons.stop, color: Colors.red),
-              onTap: () {
-                context.read<ProcessBloc>().add(ProcessStop());
-              },
-              // tooltip: 'Stop',
             ),
             const SizedBox(width: 10),
             const Spacer(),
@@ -295,10 +314,6 @@ class _VenomWindowButtonState extends State<VenomWindowButton> {
   }
 }
 
-
-
-
-
 class NeonActionBtn extends StatefulWidget {
   final VoidCallback onTap;
   final Widget child;
@@ -364,14 +379,13 @@ class _NeonRingPainter extends CustomPainter {
     final radius = (size.width / 3) - 3; // نصف القطر
 
     // إعداد فرشاة النيون
-    final Paint paint =
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth =
-              3.0 // سماكة الحلقة
-          ..strokeCap = StrokeCap.round
-          // تأثير التوهج (Neon Glow)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.solid, 4.0);
+    final Paint paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth =
+          3.0 // سماكة الحلقة
+      ..strokeCap = StrokeCap.round
+      // تأثير التوهج (Neon Glow)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.solid, 4.0);
 
     // التدرج اللوني (Venom Colors)
     // التدرج يبدأ شفافاً ثم سيان ثم بنفسجي ليعطي تأثير الذيل
