@@ -125,8 +125,8 @@ class _IDEShellState extends State<IDEShell> {
                           children: [
                             // Activity Bar
                             Container(
-                              width: 48,
-                              color: const Color(0xFF252526),
+                              width: 50,
+                              color: Colors.transparent,
                               child: Column(
                                 children: [
                                   const SizedBox(height: 10),
@@ -134,12 +134,41 @@ class _IDEShellState extends State<IDEShell> {
                                     0,
                                     Icons.folder_open,
                                     'Explorer',
+                                    [
+                                      Colors.transparent,
+                                      Colors.cyanAccent,
+                                      Colors.blueAccent,
+                                      Colors.cyanAccent,
+                                    ],
                                   ),
-                                  _buildSidebarIcon(1, Icons.search, 'Search'),
+                                  _buildSidebarIcon(1, Icons.search, 'Search', [
+                                    Colors.transparent,
+                                    Colors.greenAccent,
+                                    Colors.lightGreenAccent,
+                                    Colors.greenAccent,
+                                  ]),
                                   _buildSidebarIcon(
                                     2,
                                     Icons.source,
                                     'Source Control',
+                                    [
+                                      Colors.transparent,
+                                      Colors.orangeAccent,
+                                      Colors.deepOrangeAccent,
+                                      Colors.orangeAccent,
+                                    ],
+                                  ),
+                                  const Spacer(),
+                                  _buildSidebarIcon(
+                                    3,
+                                    Icons.settings,
+                                    'Settings',
+                                    [
+                                      Colors.transparent,
+                                      Colors.purpleAccent,
+                                      Colors.deepPurpleAccent,
+                                      Colors.purpleAccent,
+                                    ],
                                   ),
                                 ],
                               ),
@@ -153,6 +182,7 @@ class _IDEShellState extends State<IDEShell> {
                                     FileExplorer(),
                                     SearchPanel(),
                                     SourceControlPanel(),
+                                    Center(child: Text('Settings')),
                                   ],
                                 ),
                               )
@@ -177,12 +207,29 @@ class _IDEShellState extends State<IDEShell> {
     );
   }
 
-  Widget _buildSidebarIcon(int index, IconData icon, String tooltip) {
+  Widget _buildSidebarIcon(
+    int index,
+    IconData icon,
+    String tooltip,
+    List<Color> colors,
+  ) {
     final isSelected = _selectedSidebarIndex == index;
-    return IconButton(
-      icon: Icon(icon, color: isSelected ? Colors.white : Colors.grey),
-      tooltip: tooltip,
-      onPressed: () {
+
+    // If selected, show NeonActionBtn with full opacity
+    // If not selected, maybe show a dimmed version or just the icon?
+    // User asked for "neon effect to appear on them", implying they should all have it?
+    // Or maybe only the selected one? "appear on them" suggests all.
+    // But usually you only highlight the active one.
+    // Let's make the selected one have the neon ring, and unselected ones just be icons.
+    // OR, if the user wants them all to have the effect, maybe on hover?
+    // Given "appear on them but with different colors", I'll apply it to all but maybe
+    // only animate or show the ring when selected/hovered?
+    // The NeonActionBtn always animates.
+    // Let's use NeonActionBtn for all, but maybe dim the icon if not selected.
+
+    return NeonActionBtn(
+      colors: colors,
+      onTap: () {
         setState(() {
           if (_selectedSidebarIndex == index) {
             _isSidebarVisible = !_isSidebarVisible;
@@ -192,6 +239,11 @@ class _IDEShellState extends State<IDEShell> {
           }
         });
       },
+      child: Icon(
+        icon,
+        color: isSelected ? Colors.white : Colors.grey.withValues(alpha: 0.5),
+        size: 24,
+      ),
     );
   }
 
