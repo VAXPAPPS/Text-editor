@@ -176,14 +176,16 @@ class _IDEShellState extends State<IDEShell> {
                             // Sidebar Content
                             if (_isSidebarVisible)
                               Expanded(
-                                child: IndexedStack(
-                                  index: _selectedSidebarIndex,
-                                  children: const [
-                                    FileExplorer(),
-                                    SearchPanel(),
-                                    SourceControlPanel(),
-                                    Center(child: Text('Settings')),
-                                  ],
+                                child: _NeonSidebarWrapper(
+                                  child: IndexedStack(
+                                    index: _selectedSidebarIndex,
+                                    children: const [
+                                      FileExplorer(),
+                                      SearchPanel(),
+                                      SourceControlPanel(),
+                                      Center(child: Text('Settings')),
+                                    ],
+                                  ),
                                 ),
                               )
                             else
@@ -397,6 +399,101 @@ class _TerminalNeonPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _TerminalNeonPainter oldDelegate) {
+    return oldDelegate.rotation != rotation;
+  }
+}
+
+class _NeonSidebarWrapper extends StatefulWidget {
+  final Widget child;
+
+  const _NeonSidebarWrapper({required this.child});
+
+  @override
+  State<_NeonSidebarWrapper> createState() => _NeonSidebarWrapperState();
+}
+
+class _NeonSidebarWrapperState extends State<_NeonSidebarWrapper>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: Stack(
+        children: [
+          // Neon border animation
+          AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              return CustomPaint(
+                painter: _SidebarNeonPainter(
+                  rotation: _controller.value * 2 * 3.14159,
+                ),
+                child: child,
+              );
+            },
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: widget.child,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SidebarNeonPainter extends CustomPainter {
+  final double rotation;
+
+  _SidebarNeonPainter({required this.rotation});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      const Radius.circular(12),
+    );
+
+    final Paint paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.solid, 4.0);
+
+    paint.shader = SweepGradient(
+      center: Alignment.center,
+      colors: const [
+        Colors.transparent,
+        Color.fromARGB(255, 255, 100, 200),
+        Color.fromARGB(255, 200, 100, 255),
+        Color.fromARGB(255, 255, 100, 200),
+      ],
+      stops: const [0.0, 0.5, 0.75, 1.0],
+      transform: GradientRotation(rotation),
+    ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    canvas.drawRRect(rect, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _SidebarNeonPainter oldDelegate) {
     return oldDelegate.rotation != rotation;
   }
 }
