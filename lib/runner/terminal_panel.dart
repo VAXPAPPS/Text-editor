@@ -1,39 +1,47 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:xterm/xterm.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'process_service.dart';
+import '../blocs/process/process_bloc.dart';
 
-class TerminalPanel extends ConsumerStatefulWidget {
+class TerminalPanel extends StatefulWidget {
   const TerminalPanel({super.key});
 
   @override
-  ConsumerState<TerminalPanel> createState() => _TerminalPanelState();
+  State<TerminalPanel> createState() => _TerminalPanelState();
 }
 
-class _TerminalPanelState extends ConsumerState<TerminalPanel> {
+class _TerminalPanelState extends State<TerminalPanel> {
   late final Terminal _terminal;
   late final TerminalController _controller;
+  StreamSubscription? _outputSubscription;
 
   @override
   void initState() {
     super.initState();
-    _terminal = Terminal(
-      maxLines: 10000,
-    );
+    _terminal = Terminal(maxLines: 10000);
     _controller = TerminalController();
-    
+
     _terminal.write('Welcome to Flutter IDE Terminal\r\n\$ ');
+
+    // Listen to process output stream
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _outputSubscription = context.read<ProcessBloc>().outputStream.listen((
+        data,
+      ) {
+        _terminal.write(data);
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _outputSubscription?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Listen to process output
-    ref.listen(processOutputProvider, (previous, next) {
-      next.whenData((data) {
-        _terminal.write(data);
-      });
-    });
-
     return Container(
       color: const Color.fromARGB(68, 0, 0, 0),
       child: TerminalView(

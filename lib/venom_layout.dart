@@ -1,10 +1,13 @@
 import 'dart:ui'; // مهم للـ ImageFilter
 import 'package:flutter/material.dart';
-import 'package:flutter_dart_editor/lsp/analysis_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'runner/process_service.dart';
+import 'blocs/process/process_bloc.dart';
+import 'blocs/process/process_event.dart';
+import 'blocs/analysis/analysis_bloc.dart';
+import 'blocs/analysis/analysis_event.dart';
+import 'blocs/file_explorer/file_explorer_cubit.dart';
 
 // 1. هذا هو الـ Layout الرئيسي الذي ستستخدمه في تطبيقك
 class VenomScaffold extends StatefulWidget {
@@ -14,7 +17,7 @@ class VenomScaffold extends StatefulWidget {
   const VenomScaffold({
     super.key,
     required this.body,
-    this.title = "'Flutter IDE' Venom Layout",
+    this.title = "Venom IDE",
     required AppBar appBar,
   });
 
@@ -86,7 +89,7 @@ class _VenomScaffoldState extends State<VenomScaffold> {
 }
 
 // 2. شريط العنوان المعدل (يرسل إشارات الهوفر)
-class VenomAppbar extends ConsumerStatefulWidget {
+class VenomAppbar extends StatefulWidget {
   final String title;
   final VoidCallback onHoverEnter;
   final VoidCallback onHoverExit;
@@ -99,16 +102,18 @@ class VenomAppbar extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<VenomAppbar> createState() => _VenomAppbarState();
+  State<VenomAppbar> createState() => _VenomAppbarState();
 }
 
-class _VenomAppbarState extends ConsumerState<VenomAppbar> {
+class _VenomAppbarState extends State<VenomAppbar> {
   @override
   void initState() {
     super.initState();
     // Start LSP
     Future.delayed(Duration.zero, () {
-      ref.read(analysisServiceProvider).start();
+      if (mounted) {
+        context.read<AnalysisBloc>().add(AnalysisStart());
+      }
     });
   }
 
@@ -118,6 +123,7 @@ class _VenomAppbarState extends ConsumerState<VenomAppbar> {
       behavior: HitTestBehavior.translucent,
       onPanStart: (_) async {
         await windowManager.startDragging();
+        if (!context.mounted) return;
       },
       child: Container(
         height: 40,
@@ -143,28 +149,38 @@ class _VenomAppbarState extends ConsumerState<VenomAppbar> {
             IconButton(
               icon: const Icon(Icons.play_arrow, color: Colors.green),
               onPressed: () {
-                ref.read(processServiceProvider).runFlutterApp();
+                final projectPath = context
+                    .read<FileExplorerCubit>()
+                    .state
+                    .projectPath;
+                if (projectPath != null) {
+                  context.read<ProcessBloc>().add(ProcessRun(projectPath));
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('No project open')),
+                  );
+                }
               },
               tooltip: 'Run',
             ),
             IconButton(
               icon: const Icon(Icons.flash_on, color: Colors.yellow),
               onPressed: () {
-                ref.read(processServiceProvider).hotReload();
+                context.read<ProcessBloc>().add(ProcessHotReload());
               },
               tooltip: 'Hot Reload',
             ),
             IconButton(
               icon: const Icon(Icons.restart_alt, color: Colors.orange),
               onPressed: () {
-                ref.read(processServiceProvider).hotRestart();
+                context.read<ProcessBloc>().add(ProcessHotRestart());
               },
               tooltip: 'Hot Restart',
             ),
             IconButton(
               icon: const Icon(Icons.stop, color: Colors.red),
               onPressed: () {
-                ref.read(processServiceProvider).stop();
+                context.read<ProcessBloc>().add(ProcessStop());
               },
               tooltip: 'Stop',
             ),

@@ -1,45 +1,40 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:async';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'process_event.dart';
+import 'process_state.dart';
 
-final processServiceProvider = Provider((ref) => ProcessService(ref));
-
-final processOutputProvider = StreamProvider<String>((ref) {
-  final service = ref.watch(processServiceProvider);
-  return service.outputStream;
-});
-
-class ProcessService {
-  final Ref _ref;
+class ProcessBloc extends Bloc<ProcessEvent, ProcessState> {
   Process? _process;
   // ignore: close_sinks
   final _outputController = StreamController<String>.broadcast();
 
-  ProcessService(this._ref);
-
   Stream<String> get outputStream => _outputController.stream;
 
-  Future<void> runFlutterApp() async {
-    final projectPath = _ref.read(projectPathProvider);
-    if (projectPath == null) {
-      _outputController.add('Error: No project open.\r\n');
-      return;
-    }
+  ProcessBloc() : super(ProcessInitial()) {
+    on<ProcessRun>(_onRun);
+    on<ProcessHotReload>(_onHotReload);
+    on<ProcessHotRestart>(_onHotRestart);
+    on<ProcessStop>(_onStop);
+  }
 
+  Future<void> _onRun(ProcessRun event, Emitter<ProcessState> emit) async {
     if (_process != null) {
       _outputController.add('Error: App already running. Stop it first.\r\n');
       return;
     }
 
     try {
-      _outputController.add('Starting "flutter run -d linux" in $projectPath...\r\n');
-      
+      _outputController.add(
+        'Starting "flutter run -d linux" in ${event.projectPath}...\r\n',
+      );
+      emit(ProcessRunning());
+
       _process = await Process.start(
         'flutter',
         ['run', '-d', 'linux'],
-        workingDirectory: projectPath,
+        workingDirectory: event.projectPath,
         runInShell: true,
       );
 
@@ -54,32 +49,40 @@ class ProcessService {
       _process!.exitCode.then((code) {
         _outputController.add('Process exited with code $code.\r\n');
         _process = null;
+        add(ProcessStop()); // Trigger state update
       });
-
     } catch (e) {
       _outputController.add('Failed to start process: $e\r\n');
+      emit(ProcessStopped());
     }
   }
 
-  void hotReload() {
+  void _onHotReload(ProcessHotReload event, Emitter<ProcessState> emit) {
     if (_process != null) {
       _outputController.add('Performing Hot Reload...\r\n');
       _process!.stdin.write('r');
     }
   }
 
-  void hotRestart() {
+  void _onHotRestart(ProcessHotRestart event, Emitter<ProcessState> emit) {
     if (_process != null) {
       _outputController.add('Performing Hot Restart...\r\n');
       _process!.stdin.write('R');
     }
   }
 
-  void stop() {
+  void _onStop(ProcessStop event, Emitter<ProcessState> emit) {
     if (_process != null) {
       _outputController.add('Stopping app...\r\n');
       _process!.stdin.write('q');
-      // _process!.kill(); // 'q' should exit gracefully
+      // _process!.kill();
     }
+    emit(ProcessStopped());
+  }
+
+  @override
+  Future<void> close() {
+    _outputController.close();
+    return super.close();
   }
 }
