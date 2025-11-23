@@ -20,6 +20,7 @@ import 'status_bar.dart';
 import 'search_panel.dart';
 import 'problems_panel.dart';
 import 'source_control_panel.dart';
+import 'interactive_terminal.dart';
 
 class IDEShell extends StatefulWidget {
   const IDEShell({super.key});
@@ -326,7 +327,7 @@ class _NeonTerminalAreaState extends State<_NeonTerminalArea>
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: DefaultTabController(
-              length: 2,
+              length: 3,
               child: Column(
                 children: [
                   Container(
@@ -345,13 +346,18 @@ class _NeonTerminalAreaState extends State<_NeonTerminalArea>
                       indicatorSize: TabBarIndicatorSize.label,
                       tabs: [
                         Tab(text: 'TERMINAL', height: 35),
+                        Tab(text: 'DEBUG', height: 35),
                         Tab(text: 'PROBLEMS', height: 35),
                       ],
                     ),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: TabBarView(
-                      children: [TerminalPanel(), ProblemsPanel()],
+                      children: [
+                        InteractiveTerminal(),
+                        TerminalPanel(),
+                        ProblemsPanel(),
+                      ],
                     ),
                   ),
                 ],
