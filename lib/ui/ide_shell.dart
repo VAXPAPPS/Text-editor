@@ -276,38 +276,127 @@ class _IDEShellState extends State<IDEShell> {
   }
 
   Widget _buildTerminalArea() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: DefaultTabController(
-        length: 2,
-        child: Column(
-          children: [
-            Container(
-              height: 35,
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(61, 45, 45, 45),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  topRight: Radius.circular(12),
-                ),
+    return const _NeonTerminalArea();
+  }
+}
+
+class _NeonTerminalArea extends StatefulWidget {
+  const _NeonTerminalArea();
+
+  @override
+  State<_NeonTerminalArea> createState() => _NeonTerminalAreaState();
+}
+
+class _NeonTerminalAreaState extends State<_NeonTerminalArea>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        // Neon border animation
+        AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return CustomPaint(
+              painter: _TerminalNeonPainter(
+                rotation: _controller.value * 2 * 3.14159,
               ),
-              child: const TabBar(
-                isScrollable: true,
-                labelColor: Colors.white,
-                unselectedLabelColor: Colors.grey,
-                indicatorSize: TabBarIndicatorSize.label,
-                tabs: [
-                  Tab(text: 'TERMINAL', height: 35),
-                  Tab(text: 'PROBLEMS', height: 35),
+              child: child,
+            );
+          },
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: DefaultTabController(
+              length: 2,
+              child: Column(
+                children: [
+                  Container(
+                    height: 35,
+                    decoration: const BoxDecoration(
+                      color: Color.fromARGB(61, 45, 45, 45),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        topRight: Radius.circular(12),
+                      ),
+                    ),
+                    child: const TabBar(
+                      isScrollable: true,
+                      labelColor: Colors.white,
+                      unselectedLabelColor: Colors.grey,
+                      indicatorSize: TabBarIndicatorSize.label,
+                      tabs: [
+                        Tab(text: 'TERMINAL', height: 35),
+                        Tab(text: 'PROBLEMS', height: 35),
+                      ],
+                    ),
+                  ),
+                  const Expanded(
+                    child: TabBarView(
+                      children: [TerminalPanel(), ProblemsPanel()],
+                    ),
+                  ),
                 ],
               ),
             ),
-            const Expanded(
-              child: TabBarView(children: [TerminalPanel(), ProblemsPanel()]),
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
+  }
+}
+
+class _TerminalNeonPainter extends CustomPainter {
+  final double rotation;
+
+  _TerminalNeonPainter({required this.rotation});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      const Radius.circular(12),
+    );
+
+    final Paint paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.solid, 4.0);
+
+    paint.shader = SweepGradient(
+      center: Alignment.center,
+      colors: const [
+        Colors.transparent,
+        Color.fromARGB(255, 100, 200, 255),
+        Color.fromARGB(255, 150, 100, 255),
+        Color.fromARGB(255, 100, 200, 255),
+      ],
+      stops: const [0.0, 0.5, 0.75, 1.0],
+      transform: GradientRotation(rotation),
+    ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    canvas.drawRRect(rect, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _TerminalNeonPainter oldDelegate) {
+    return oldDelegate.rotation != rotation;
   }
 }
