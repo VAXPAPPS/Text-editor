@@ -276,28 +276,37 @@ class _IDEShellState extends State<IDEShell> {
   }
 
   Widget _buildTerminalArea() {
-    return DefaultTabController(
-      length: 2,
-      child: Column(
-        children: [
-          Container(
-            height: 35,
-            color: const Color(0xFF2D2D2D),
-            child: const TabBar(
-              isScrollable: true,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.grey,
-              indicatorSize: TabBarIndicatorSize.label,
-              tabs: [
-                Tab(text: 'TERMINAL', height: 35),
-                Tab(text: 'PROBLEMS', height: 35),
-              ],
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: DefaultTabController(
+        length: 2,
+        child: Column(
+          children: [
+            Container(
+              height: 35,
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(61, 45, 45, 45),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
+                ),
+              ),
+              child: const TabBar(
+                isScrollable: true,
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.grey,
+                indicatorSize: TabBarIndicatorSize.label,
+                tabs: [
+                  Tab(text: 'TERMINAL', height: 35),
+                  Tab(text: 'PROBLEMS', height: 35),
+                ],
+              ),
             ),
-          ),
-          const Expanded(
-            child: TabBarView(children: [TerminalPanel(), ProblemsPanel()]),
-          ),
-        ],
+            const Expanded(
+              child: TabBarView(children: [TerminalPanel(), ProblemsPanel()]),
+            ),
+          ],
+        ),
       ),
     );
   }

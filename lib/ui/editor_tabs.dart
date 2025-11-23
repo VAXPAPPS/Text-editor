@@ -43,9 +43,12 @@ class EditorTabs extends StatelessWidget {
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  color: isActive
-                      ? const Color.fromARGB(255, 69, 179, 164)
-                      : Colors.transparent,
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? const Color.fromARGB(255, 69, 179, 164)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   alignment: Alignment.center,
                   child: Row(
                     children: [
