@@ -14,6 +14,7 @@ Future<void> main() async {
   // Initialize Flutter bindings first to ensure the binary messenger is ready
   WidgetsFlutterBinding.ensureInitialized();
 
+
   // Initialize window manager for desktop controls
   await windowManager.ensureInitialized();
 
