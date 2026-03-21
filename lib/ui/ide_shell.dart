@@ -150,7 +150,7 @@ class _IDEShellState extends State<IDEShell> {
                                   ]),
                                   _buildSidebarIcon(
                                     2,
-                                    Icons.source,
+                                    Icons.account_tree,
                                     'Source Control',
                                     [
                                       Colors.transparent,
@@ -231,7 +231,6 @@ class _IDEShellState extends State<IDEShell> {
     // Let's use NeonActionBtn for all, but maybe dim the icon if not selected.
 
     return NeonActionBtn(
-      colors: colors,
       onTap: () {
         setState(() {
           if (_selectedSidebarIndex == index) {
@@ -283,223 +282,79 @@ class _IDEShellState extends State<IDEShell> {
   }
 }
 
-class _NeonTerminalArea extends StatefulWidget {
+class _NeonTerminalArea extends StatelessWidget {
   const _NeonTerminalArea();
 
   @override
-  State<_NeonTerminalArea> createState() => _NeonTerminalAreaState();
-}
-
-class _NeonTerminalAreaState extends State<_NeonTerminalArea>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 3),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // Neon border animation
-        AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) {
-            return CustomPaint(
-              painter: _TerminalNeonPainter(
-                rotation: _controller.value * 2 * 3.14159,
-              ),
-              child: child,
-            );
-          },
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: DefaultTabController(
-              length: 3,
-              child: Column(
-                children: [
-                  Container(
-                    height: 35,
-                    decoration: const BoxDecoration(
-                      color: Color.fromARGB(61, 45, 45, 45),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(12),
-                        topRight: Radius.circular(12),
-                      ),
-                    ),
-                    child: const TabBar(
-                      isScrollable: true,
-                      labelColor: Colors.white,
-                      unselectedLabelColor: Colors.grey,
-                      indicatorSize: TabBarIndicatorSize.label,
-                      tabs: [
-                        Tab(text: 'TERMINAL', height: 35),
-                        Tab(text: 'DEBUG', height: 35),
-                        Tab(text: 'PROBLEMS', height: 35),
-                      ],
-                    ),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF3F3F46)),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: DefaultTabController(
+          length: 3,
+          child: Column(
+            children: [
+              Container(
+                height: 35,
+                decoration: const BoxDecoration(
+                  color: Color.fromARGB(61, 45, 45, 45),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(12),
                   ),
-                  Expanded(
-                    child: TabBarView(
-                      children: [
-                        InteractiveTerminal(),
-                        TerminalPanel(),
-                        ProblemsPanel(),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
+                child: const TabBar(
+                  isScrollable: true,
+                  labelColor: Colors.white,
+                  unselectedLabelColor: Colors.grey,
+                  indicatorSize: TabBarIndicatorSize.label,
+                  tabs: [
+                    Tab(text: 'TERMINAL', height: 35),
+                    Tab(text: 'DEBUG', height: 35),
+                    Tab(text: 'PROBLEMS', height: 35),
+                  ],
+                ),
               ),
-            ),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    InteractiveTerminal(),
+                    TerminalPanel(),
+                    ProblemsPanel(),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-      ],
-    );
-  }
-}
-
-class _TerminalNeonPainter extends CustomPainter {
-  final double rotation;
-
-  _TerminalNeonPainter({required this.rotation});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      const Radius.circular(12),
-    );
-
-    final Paint paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5
-      ..strokeCap = StrokeCap.round
-      ..maskFilter = const MaskFilter.blur(BlurStyle.solid, 4.0);
-
-    paint.shader = SweepGradient(
-      center: Alignment.center,
-      colors: const [
-        Colors.transparent,
-        Color.fromARGB(255, 100, 200, 255),
-        Color.fromARGB(255, 150, 100, 255),
-        Color.fromARGB(255, 100, 200, 255),
-      ],
-      stops: const [0.0, 0.5, 0.75, 1.0],
-      transform: GradientRotation(rotation),
-    ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
-
-    canvas.drawRRect(rect, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _TerminalNeonPainter oldDelegate) {
-    return oldDelegate.rotation != rotation;
-  }
-}
-
-class _NeonSidebarWrapper extends StatefulWidget {
-  final Widget child;
-
-  const _NeonSidebarWrapper({required this.child});
-
-  @override
-  State<_NeonSidebarWrapper> createState() => _NeonSidebarWrapperState();
-}
-
-class _NeonSidebarWrapperState extends State<_NeonSidebarWrapper>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 4),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(4.0),
-      child: Stack(
-        children: [
-          // Neon border animation
-          AnimatedBuilder(
-            animation: _controller,
-            builder: (context, child) {
-              return CustomPaint(
-                painter: _SidebarNeonPainter(
-                  rotation: _controller.value * 2 * 3.14159,
-                ),
-                child: child,
-              );
-            },
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: widget.child,
-            ),
-          ),
-        ],
       ),
     );
   }
 }
 
-class _SidebarNeonPainter extends CustomPainter {
-  final double rotation;
+class _NeonSidebarWrapper extends StatelessWidget {
+  final Widget child;
 
-  _SidebarNeonPainter({required this.rotation});
+  const _NeonSidebarWrapper({required this.child});
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final rect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      const Radius.circular(12),
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFF3F3F46)),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: child,
+        ),
+      ),
     );
-
-    final Paint paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5
-      ..strokeCap = StrokeCap.round
-      ..maskFilter = const MaskFilter.blur(BlurStyle.solid, 4.0);
-
-    paint.shader = SweepGradient(
-      center: Alignment.center,
-      colors: const [
-        Colors.transparent,
-        Color.fromARGB(255, 255, 100, 200),
-        Color.fromARGB(255, 200, 100, 255),
-        Color.fromARGB(255, 255, 100, 200),
-      ],
-      stops: const [0.0, 0.5, 0.75, 1.0],
-      transform: GradientRotation(rotation),
-    ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
-
-    canvas.drawRRect(rect, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _SidebarNeonPainter oldDelegate) {
-    return oldDelegate.rotation != rotation;
   }
 }

@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'dart:ui'; // مهم للـ ImageFilter
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -287,15 +286,11 @@ class _VenomWindowButtonState extends State<VenomWindowButton> {
           decoration: BoxDecoration(
             color: widget.color,
             shape: BoxShape.circle,
-            boxShadow: _isHovered
-                ? [
-                    BoxShadow(
-                      color: widget.color.withValues(alpha: 0.8),
-                      blurRadius: 10, // زيادة التوهج قليلاً
-                      spreadRadius: 2,
-                    ),
-                  ]
-                : [],
+            border: Border.all(
+              color: _isHovered
+                  ? Colors.white.withValues(alpha: 0.18)
+                  : Colors.transparent,
+            ),
           ),
           child: Center(
             child: AnimatedOpacity(
@@ -317,101 +312,47 @@ class _VenomWindowButtonState extends State<VenomWindowButton> {
 class NeonActionBtn extends StatefulWidget {
   final VoidCallback onTap;
   final Widget child;
-  final List<Color>? colors;
 
   const NeonActionBtn({
     super.key,
     required this.onTap,
     required this.child,
-    this.colors,
   });
 
   @override
   State<NeonActionBtn> createState() => _NeonActionBtnState();
 }
 
-class _NeonActionBtnState extends State<NeonActionBtn>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+class _NeonActionBtnState extends State<NeonActionBtn> {
+  bool _isHovered = false;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: widget.onTap,
-      child: Container(
-        width: 50,
-        height: 50,
-        color: Colors.transparent,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            RotationTransition(
-              turns: _controller,
-              child: CustomPaint(
-                size: const Size(50, 50),
-                painter: _NeonRingPainter(colors: widget.colors),
-              ),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOut,
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: _isHovered
+                ? Colors.white.withValues(alpha: 0.06)
+                : Colors.transparent,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: _isHovered
+                  ? Colors.white.withValues(alpha: 0.12)
+                  : Colors.transparent,
             ),
-            widget.child,
-          ],
+          ),
+          child: Center(child: widget.child),
         ),
       ),
     );
-  }
-}
-
-class _NeonRingPainter extends CustomPainter {
-  final List<Color>? colors;
-
-  _NeonRingPainter({this.colors});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width / 3) - 3;
-
-    final Paint paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.0
-      ..strokeCap = StrokeCap.round
-      ..maskFilter = const MaskFilter.blur(BlurStyle.solid, 4.0);
-
-    final Rect rect = Rect.fromCircle(center: center, radius: radius);
-
-    final gradientColors =
-        colors ??
-        [
-          Colors.transparent,
-          Colors.cyanAccent,
-          Colors.purpleAccent,
-          Colors.cyanAccent,
-        ];
-
-    paint.shader = SweepGradient(
-      colors: gradientColors,
-      stops: const [0.0, 0.5, 0.75, 1.0],
-    ).createShader(rect);
-
-    canvas.drawArc(rect, 0, math.pi * 2, false, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _NeonRingPainter oldDelegate) {
-    return oldDelegate.colors != colors;
   }
 }
