@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../lsp/lsp_client.dart';
@@ -46,7 +47,11 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
         emit(state.copyWith(completionItems: completionList.items));
       }
     } catch (e) {
-      print('Completion error: $e');
+      developer.log(
+        'Completion error',
+        name: 'AnalysisBloc',
+        error: e,
+      );
     }
   }
 
@@ -79,7 +84,11 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
         );
       }
     } catch (e) {
-      print('Hover error: $e');
+      developer.log(
+        'Hover error',
+        name: 'AnalysisBloc',
+        error: e,
+      );
     }
   }
 
@@ -118,7 +127,11 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
 
       _client.sendNotification('initialized', {});
     } catch (e) {
-      print('Failed to start LSP: $e');
+      developer.log(
+        'Failed to start LSP',
+        name: 'AnalysisBloc',
+        error: e,
+      );
     }
   }
 

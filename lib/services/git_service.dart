@@ -29,7 +29,7 @@ class GitService {
 
       // XY Path
       // X: Index status, Y: Work tree status
-      final x = line.length > 0 ? line[0] : ' ';
+      final x = line.isNotEmpty ? line[0] : ' ';
       final y = line.length > 1 ? line[1] : ' ';
       final path = line.substring(3).trim();
 

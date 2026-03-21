@@ -54,7 +54,6 @@ class _CodeEditorState extends State<CodeEditor> {
                 _controller!.selection = TextSelection.collapsed(
                   offset: offset,
                 );
-                // TODO: Scroll to make it visible (CodeField handles this usually on selection change)
               }
             }
           },
@@ -217,7 +216,9 @@ class _CodeEditorState extends State<CodeEditor> {
                                         onTap: () {
                                           // Insert completion (simplified)
                                           // In real app, handle text edit
-                                          print('Selected: ${item.label}');
+                                          debugPrint(
+                                            'Selected: ${item.label}',
+                                          );
                                         },
                                       );
                                     },

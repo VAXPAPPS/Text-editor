@@ -138,8 +138,9 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
 
     await for (final entity in files) {
       if (entity is File) {
-        if (_shouldIgnore(entity.path, projectDir.path, ignorePatterns))
+        if (_shouldIgnore(entity.path, projectDir.path, ignorePatterns)) {
           continue;
+        }
 
         try {
           // Read file line by line to avoid loading huge files

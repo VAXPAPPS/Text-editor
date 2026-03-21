@@ -15,7 +15,7 @@ class FileExplorer extends StatefulWidget {
 }
 
 class _FileExplorerState extends State<FileExplorer> {
-  Future<void> _openProject(BuildContext context) async {
+  Future<void> _openProject() async {
     final String? directoryPath = await getDirectoryPath();
     if (!mounted) return;
     if (directoryPath != null) {
@@ -32,7 +32,7 @@ class _FileExplorerState extends State<FileExplorer> {
         if (projectPath == null) {
           return Center(
             child: ElevatedButton(
-              onPressed: () => _openProject(context),
+              onPressed: _openProject,
               child: const Text('Open Project'),
             ),
           );
@@ -61,7 +61,7 @@ class _FileExplorerState extends State<FileExplorer> {
                       size: 16,
                       color: Colors.white,
                     ),
-                    onPressed: () => _openProject(context),
+                    onPressed: _openProject,
                     tooltip: 'Open Project',
                   ),
                 ],

@@ -20,7 +20,7 @@ class SearchHighlights extends StatelessWidget {
       text: _buildSpan(),
       softWrap: false,
       overflow: TextOverflow.visible,
-      textScaleFactor: 1.0,
+      textScaler: TextScaler.noScaling,
     );
   }
 

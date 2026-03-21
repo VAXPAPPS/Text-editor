@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:io';
 import 'models/lsp_message.dart';
 import 'models/protocol_generated.dart';
@@ -28,10 +29,10 @@ class LSPClient {
       });
 
       _process!.stderr.transform(utf8.decoder).listen((data) {
-        print('LSP Stderr: $data');
+        developer.log(data, name: 'LSPClient.stderr');
       });
     } catch (e) {
-      print('Failed to start LSP: $e');
+      developer.log('Failed to start LSP', name: 'LSPClient', error: e);
       rethrow;
     }
   }
@@ -120,7 +121,11 @@ class LSPClient {
         }
       }
     } catch (e) {
-      print('Error handling LSP message: $e');
+      developer.log(
+        'Error handling LSP message',
+        name: 'LSPClient',
+        error: e,
+      );
     }
   }
 
