@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_dart_editor/venom_layout.dart';
+import 'package:texteditor/venom_layout.dart';
 import 'package:multi_split_view/multi_split_view.dart';
 import '../files/file_explorer.dart';
 import '../blocs/file_explorer/file_explorer_cubit.dart';
