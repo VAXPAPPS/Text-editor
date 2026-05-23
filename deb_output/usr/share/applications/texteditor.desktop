@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=texteditor
+Comment=Flutter Application - texteditor
+Exec=/usr/bin/texteditor
+Icon=/usr/share/icons/hicolor/256x256/apps/texteditor.png
+Terminal=false
+Categories=Utility;TextEditor;
+Keywords=editor;text;notepad;code;write;
+MimeType=text/plain;text/x-log;application/json;text/xml;
